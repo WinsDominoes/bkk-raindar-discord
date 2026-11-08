@@ -1,0 +1,7 @@
+services:
+  bkk-raindar-discord:
+    container_name: bkk-raindar-discord
+    build:
+      context: .
+    environment:
+      NODE_ENV: production
