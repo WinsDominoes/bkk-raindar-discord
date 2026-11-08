@@ -1,32 +1,22 @@
 # syntax=docker/dockerfile:1
+ARG NODE_VERSION=22-alpine
 
-# Comments are provided throughout this file to help you get started.
-# If you need more help, visit the Dockerfile reference guide at
-# https://docs.docker.com/go/dockerfile-reference/
-
-# Want to help us make this template better? Share your feedback here: https://forms.gle/ybq9Krt8jtBL3iCk7
-
-ARG NODE_VERSION=22.2.0
-
-FROM node:${NODE_VERSION}-alpine
-
-# Use production node environment by default.
-ENV NODE_ENV production
-
-# Working Directory
-WORKDIR /usr/src/app
-
-# Copy package.json and package-lock.json to the working directory
+FROM node:${NODE_VERSION} AS deps
+WORKDIR /app
 COPY package.json package-lock.json ./
+RUN npm ci --omit=dev
 
-# Install dependencies
-RUN npm install
+FROM node:${NODE_VERSION}
+ENV NODE_ENV=production
+WORKDIR /app
 
-# Run the application as a non-root user.
+COPY --from=deps /app/node_modules ./node_modules
+COPY package.json ./
+COPY src ./src
+
+# Radar image is persisted here (mount a volume to keep it across rebuilds).
+RUN mkdir -p data && chown node:node data
+VOLUME /app/data
+
 USER node
-
-# Copy the rest of the source files into the image.
-COPY . .
-
-# Run the application.
-CMD node src/index.js
+CMD ["node", "src/index.js"]

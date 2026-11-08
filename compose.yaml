@@ -1,7 +1,11 @@
 services:
   bkk-raindar-discord:
     container_name: bkk-raindar-discord
-    build:
-      context: .
-    environment:
-      NODE_ENV: production
+    build: .
+    restart: unless-stopped
+    env_file: .env
+    volumes:
+      - radar-data:/app/data
+
+volumes:
+  radar-data:
